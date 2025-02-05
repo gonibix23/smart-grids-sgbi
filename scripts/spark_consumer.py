@@ -1,11 +1,9 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StringType, IntegerType, StructField
-import os
 
-# spark-submit /opt/spark-apps/spark_consumer.py
-
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 pyspark-shell'
+# spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py
+# command: [ "spark-submit", "--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py" ]
 
 spark = SparkSession.builder \
     .appName("KafkaSparkConsumer") \
@@ -14,6 +12,7 @@ spark = SparkSession.builder \
 df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.api.version", "3.9.0") \
     .option("subscribe", "test") \
     .option("startingOffsets", "earliest") \
     .load()

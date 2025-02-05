@@ -32,6 +32,7 @@ services:
     container_name: spark
     environment:
       - SPARK_MODE=master
+      - SPARK_JARS_DIR=/opt/spark
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -39,7 +40,14 @@ services:
       - kafka
     volumes:
       - ./shared-volumes/spark_data:/bitnami/spark
+      - ./jars:/opt/spark/jars
       - ./scripts:/opt/spark-apps
+    command: >
+      bash -c "
+      /opt/bitnami/spark/bin/spark-submit
+      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
+      /opt/spark-apps/spark_consumer.py
+      "
     networks:
       - sgbi_network
 
