@@ -11,7 +11,7 @@ spark = SparkSession.builder \
 
 df = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:9092") \
     .option("kafka.api.version", "3.9.0") \
     .option("subscribe", "test") \
     .option("startingOffsets", "earliest") \
