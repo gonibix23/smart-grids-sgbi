@@ -36,10 +36,20 @@ docker-compose logs -f
 docker exec -it kafka bash
 ```
 
-## Spark
-### Access to Spark container
+### Create topic
 ```bash
-docker exec -it spark bash
+kafka-topics.sh --create --topic test --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+```
+
+### Send messages to the topic
+```bash
+kafka-console-producer.sh --topic test --bootstrap-server localhost:9092
+```
+
+## Spark
+### Start the Spark container
+```bash
+docker start spark
 ```
 
 ### Execute the scripts to test Spark Streaming
