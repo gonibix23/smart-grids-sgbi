@@ -16,17 +16,17 @@ docker exec -it kafka bash
 
 ### Execute the scripts to test Kafka
 ```bash
-python3 scripts/kafka_producer.py
+kafka-topics.sh --create --topic test --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
 ```
 
 ```bash
-python3 scripts/kafka_consumer.py
+kafka-console-producer.sh --topic test --bootstrap-server localhost:9092
 ```
 
 ## Spark
-### Access to Spark container
+### Start the Spark container
 ```bash
-docker exec -it spark bash
+docker start spark
 ```
 
 ### Execute the scripts to test Spark Streaming

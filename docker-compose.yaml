@@ -28,7 +28,7 @@ services:
       - sgbi_network
 
   spark:
-    image: bitnami/spark:latest
+    image: sgbi/spark
     container_name: spark
     environment:
       - SPARK_MODE=master
@@ -41,13 +41,8 @@ services:
     volumes:
       - ./shared-volumes/spark_data:/bitnami/spark
       - ./jars:/opt/spark/jars
-      - ./scripts:/opt/spark-apps
-    command: >
-      bash -c "
-      /opt/bitnami/spark/bin/spark-submit
-      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
-      /opt/spark-apps/spark_consumer.py
-      "
+      - ./spark_consumer/scripts:/opt/spark-apps
+    entrypoint: ["/bin/sh", "-c", "tail -f /dev/null & exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py"]
     networks:
       - sgbi_network
 
