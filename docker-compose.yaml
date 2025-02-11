@@ -39,18 +39,11 @@ services:
     depends_on:
       - kafka
     volumes:
-      - ./shared-volumes/spark_data:/bitnami/spark
+      - ./shared_volumes/spark_data:/bitnami/spark
       - ./jars:/opt/spark/jars
       - ./scripts:/opt/spark-apps
-    command: >
-      bash -c "
-      /opt/bitnami/spark/bin/spark-submit
-      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
-      /opt/spark-apps/spark_consumer.py
-      "
     networks:
       - sgbi_network
-
 
   timescaledb:
     image: timescale/timescaledb:latest-pg14
@@ -62,7 +55,15 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
     volumes:
-      - ./shared-volumes/timescaledb_data:/var/lib/postgresql/data
+      - ./shared_volumes/timescaledb_data:/var/lib/postgresql/data
+    networks:
+      - sgbi_network
+
+  kafka_producer:
+    build: ./kafka_producer
+    container_name: kafka_producer
+    depends_on:
+      - kafka
     networks:
       - sgbi_network
 
