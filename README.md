@@ -15,14 +15,19 @@ sudo systemctl enable docker
 sudo apt-get install -y docker-compose
 ```
 
-### Start the services
+### Build and Start the services
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
 
 ### Stop the services
 ```bash
 docker-compose down
+```
+
+### Start the services
+```bash
+docker-compose up -d
 ```
 
 ### Check the logs
