@@ -42,7 +42,7 @@ services:
       - ./shared_volumes/spark_data:/bitnami/spark
       - ./jars:/opt/spark/jars
       - ./spark_consumer/scripts:/opt/spark-apps
-    entrypoint: ["/bin/sh", "-c", "tail -f /dev/null & exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py"]
+    entrypoint: ["/bin/sh", "-c", "pip install --no-cache-dir -r requirements.txt && tail -f /dev/null & exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py"]
     networks:
       - sgbi_network
 
