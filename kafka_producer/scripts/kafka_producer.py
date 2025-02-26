@@ -4,7 +4,7 @@ import logging
 import time
 
 # Configura el nivel de log para mostrar mensajes de depuración.
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 topic_name = "test"
 
@@ -16,24 +16,27 @@ def connect():
             api_version=(3, 9, 0),
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
+        logging.info("Connected to Kafka successfully.")
     except Exception as error:
-        print("Error connecting to Kafka:", error)
-    
+        logging.error("Error connecting to Kafka: %s", error)
+
     return producer
 
 def send_message(topic, message):
     try:
         producer.send(topic, message)
         producer.flush()
-        print(f'Mensaje enviado al topic {topic}')
+        logging.info('Message sent to topic %s', topic)
     except Exception as e:
-        print(f'Error al enviar mensaje al topic {topic}: {str(e)}')
+        logging.error('Error sending message to topic %s: %s', topic, str(e))
 
 while (producer := connect()) is None:
-    print(f"Topic '{topic_name}' not found or connection failed. Retrying in 5 seconds...")
+    logging.warning("Topic '%s' not found or connection failed. Retrying in 5 seconds...", topic_name)
     time.sleep(5)
 
-print("Successful connection!", producer)
+logging.info("Successful connection! %s", producer)
 
-for counter in range(10):
-    send_message(topic_name, json.dumps({"producer_key_1": counter}))
+while True:
+    time.sleep(1)
+    send_message(topic_name, json.dumps({"producer_key_1": time.time()}))
+
