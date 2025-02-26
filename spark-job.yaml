@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-job
+  namespace: spark-timescale
+spec:
+  containers:
+    - name: spark
+      image: bitnami/spark:latest
+      command:
+        - "spark-submit"
+        - "--master"
+        - "local[*]"  # Usamos "local" si solo se ejecuta en un pod
+        - "--jars"
+        - "C:/Users/v-er-/Downloads/postgresql-42.7.5.jar  "  
+        - "C:/Users/v-er-/Desktop/SGBI/spark_timescale.py"  
+      volumeMounts:
+        - name: spark-scripts
+          mountPath: /scripts
+        - name: jdbc-connector
+          mountPath: C:/Users/v-er-/Downloads/postgresql-42.7.5.jar  
+  volumes:
+    - name: spark-scripts
+      hostPath:
+        path: C:/Users/v-er-/Desktop/SGBI/spark_timescale.py  
+        type: Directory
+    - name: jdbc-connector
+      hostPath:
+        path: C:/Users/v-er-/Downloads/postgresql-42.7.5.jar  
+        type: File
