@@ -1,23 +1,24 @@
+import os
+import json
+import time
+import psycopg2
 from pyspark.sql import SparkSession
 from pyspark.sql.utils import StreamingQueryException
-from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import StructType, StringType, IntegerType, StructField
 
-import json
-import psycopg2
-import time
-
+# Datos de conexión a la base de datos TimescaleDB
 DB_HOST = "timescaledb"
 DB_PORT = "5432"
 DB_NAME = "mydb"
 DB_USER = "myuser"
 DB_PASSWORD = "mypassword"
 
+# Configura la sesión de Spark
 spark = SparkSession.builder \
     .appName("KafkaSparkConsumer") \
     .getOrCreate()
 
-kafka_broker = "kafka:9092"
+# Obtén el broker de Kafka desde una variable de entorno; por defecto usa localhost:9092
+kafka_broker = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
 topic_name = "test"
 
 def start_streaming_job():
