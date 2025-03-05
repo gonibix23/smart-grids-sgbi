@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-producer
+  template:
+    metadata:
+      labels:
+        app: kafka-producer
+    spec:
+      containers:
+      - name: kafka-producer
+        image: gonibix23/kafka_producer:latest  # Asegúrate de que esta imagen esté construida y disponible
+        env:
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            value: "kafka:9092"

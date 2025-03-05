@@ -1,39 +1,3 @@
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: zookeeper
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: zookeeper
-  template:
-    metadata:
-      labels:
-        app: zookeeper
-    spec:
-      containers:
-      - name: zookeeper
-        image: bitnami/zookeeper:latest
-        ports:
-        - containerPort: 2181
-        env:
-        - name: ALLOW_ANONYMOUS_LOGIN
-          value: "yes"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zookeeper
-spec:
-  selector:
-    app: zookeeper
-  ports:
-  - protocol: TCP
-    port: 2181
-    targetPort: 2181
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -52,9 +16,9 @@ spec:
       - name: wait-for-zookeeper
         image: busybox
         command:
-            - sh
-            - -c
-            - "until nslookup zookeeper.default.svc.cluster.local > /dev/null 2>&1; do echo 'waiting for zookeeper'; sleep 2; done;"
+          - sh
+          - -c
+          - "until nslookup zookeeper.default.svc.cluster.local > /dev/null 2>&1; do echo 'waiting for zookeeper'; sleep 2; done;"
       containers:
       - name: kafka
         image: bitnami/kafka:latest
@@ -70,17 +34,4 @@ spec:
         - name: KAFKA_LISTENERS
           value: "PLAINTEXT://0.0.0.0:9092"
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: "PLAINTEXT://localhost:9092"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka
-spec:
-  selector:
-    app: kafka
-  ports:
-  - protocol: TCP
-    port: 9092
-    targetPort: 9092
+          value: "PLAINTEXT://kafka:9092"

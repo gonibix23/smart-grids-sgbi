@@ -1,40 +1,5 @@
 version: '3.8'
 services:
-  spark:
-    build: ./spark_consumer
-    container_name: spark
-    environment:
-      - SPARK_MODE=master
-      - SPARK_JARS_DIR=/opt/spark
-      # Endpoint de Kafka para entorno local
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-    ports:
-      - "8080:8080"
-      - "7077:7077"
-    depends_on:
-      - timescaledb
-
-  timescaledb:
-    image: timescale/timescaledb:latest-pg14
-    container_name: timescaledb
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: mydb
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-    volumes:
-      - ./shared_volumes/timescaledb_data:/var/lib/postgresql/data
-
-  kafka_producer:
-    network_mode: host
-    build: ./kafka_producer
-    container_name: kafka_producer
-    depends_on:
-        - timescaledb
-    environment:
-        - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
