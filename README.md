@@ -9,6 +9,17 @@ Smart Grids: Infraestructura, gestión del dato y BI (SGBI)
 kubectl get pods
 ```
 
+## Docker Setup
+
+### Create Pass for Docker
+
+https://docs.docker.com/desktop/setup/sign-in/
+
+### Login to Docker
+```bash
+docker login
+```
+
 ## Kafka
 ### Check Pods
 
