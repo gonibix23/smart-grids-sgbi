@@ -16,6 +16,7 @@ def connect():
     producer = None
     try:
         producer = KafkaProducer(
+
             bootstrap_servers=bootstrap_servers,
             api_version=(3, 9, 0),
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
@@ -23,7 +24,6 @@ def connect():
         logging.info("Connected to Kafka successfully at %s.", bootstrap_servers)
     except Exception as error:
         print("Error connecting to Kafka:", error)
-
     return producer
 
 def send_message(topic, message):
@@ -45,3 +45,4 @@ logging.info("Successful connection! Producer: %s", producer)
 while True:
     time.sleep(1)
     send_message(topic_name, {"producer_key_1": time.time()})
+    
