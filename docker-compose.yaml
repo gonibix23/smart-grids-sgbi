@@ -1,80 +1,14 @@
 version: '3.8'
 services:
-  zookeeper:
-    image: bitnami/zookeeper:latest
-    container_name: zookeeper
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
     ports:
-      - "2181:2181"
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    networks:
-      - sgbi_network
-
-  kafka:
-    image: bitnami/kafka:latest
-    container_name: kafka
-    ports:
-      - "9092:9092"
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - "3000:3000"
     depends_on:
-      - zookeeper
-    entrypoint: sh -c 'sleep 20 && /opt/bitnami/scripts/kafka/entrypoint.sh /opt/bitnami/scripts/kafka/run.sh'
-    networks:
-      - sgbi_network
-
-  spark:
-    build: ./spark_consumer
-    container_name: spark
+      - timescaledb
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/grafana_data:/var/lib/grafana
     environment:
-      - SPARK_MODE=master
-      - SPARK_JARS_DIR=/opt/spark
-    ports:
-      - "8080:8080"
-      - "7077:7077"
-    depends_on:
-      - kafka
-    volumes:
-      - ./shared_volumes/spark_data:/bitnami/spark
-      - ./jars:/opt/spark/jars
-      - ./spark_consumer/scripts:/opt/spark-apps
-    entrypoint: ["/bin/sh", "-c", "pip install --no-cache-dir -r requirements.txt && tail -f /dev/null & exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py"]
-    networks:
-      - sgbi_network
-
-  timescaledb:
-    image: timescale/timescaledb:latest-pg14
-    container_name: timescaledb
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: mydb
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-    volumes:
-      - ./shared_volumes/timescaledb_data:/var/lib/postgresql/data
-    networks:
-      - sgbi_network
-
-  kafka_producer:
-    build: ./kafka_producer
-    container_name: kafka_producer
-    ports:
-      - "5000:5000"
-    depends_on:
-      - kafka
-    volumes:
-      - ./kafka_producer/scripts:/app/scripts
-    working_dir: /app/scripts
-    command: sh -c "pip install --no-cache-dir -r requirements.txt && python kafka_producer.py"
-    networks:
-      - sgbi_network
-
-
-networks:
-  sgbi_network:
-    driver: bridge
+      - GF_SECURITY_ADMIN_PASSWORD=admin

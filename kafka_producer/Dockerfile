@@ -1,11 +1,15 @@
-# Usa una imagen oficial de Python como base
 FROM python:3.10-slim
 
-# Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app/scripts
 
-# Copia los archivos de la aplicación al contenedor
-COPY . .
+# Copia el archivo de requerimientos e instálalos
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expone el puerto 5000 para la API Flask
+# Copia el contenido de la carpeta scripts en el contenedor
+COPY scripts/ .
+
+# Expone el puerto 5000 si es necesario (por ejemplo, si usas Flask)
 EXPOSE 5000
+
+CMD ["python", "kafka_producer.py"]
