@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-consumer
+  template:
+    metadata:
+      labels:
+        app: spark-consumer
+    spec:
+      containers:
+      - name: spark-consumer
+        image: gonibix23/spark_consumer:latest  # Asegúrate de haber construido y publicado la imagen
+        env:
+          - name: SPARK_MODE
+            value: "master"
+          - name: SPARK_JARS_DIR
+            value: "/opt/spark"
+          # Actualiza el endpoint de Kafka para Kubernetes; si Kafka está desplegado en k8s y expuesto como "kafka"
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            value: "kafka:9092"
+        ports:
+          - containerPort: 8080  # Por ejemplo, para el Spark UI
+          - containerPort: 7077  # Para el puerto Spark master
