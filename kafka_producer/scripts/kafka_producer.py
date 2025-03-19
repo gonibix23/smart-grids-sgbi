@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import time
+import random
 from kafka import KafkaProducer
 
 # Configura el nivel de log para mostrar mensajes de depuración.
@@ -44,5 +45,23 @@ logging.info("Successful connection! Producer: %s", producer)
 # Envía mensajes de forma continua.
 while True:
     time.sleep(1)
-    send_message(topic_name, {"producer_key_1": time.time()})
+    
+    # Generar valores aleatorios
+    consumo_kwh = round(random.uniform(0, 1), 3)
+    temperatura = round(random.uniform(0, 40), 1)
+    irradiacion_solar = random.randint(0, 10)
+    placas = random.choice([True, False])
+    produccion_solar_kwh = round(random.uniform(0, 1), 18) if placas else None
+    
+    mensaje = {
+        "id_casa": "id_casa_1_barcelona",
+        "fecha": time.time(),
+        "consumo_kwh": consumo_kwh,
+        "temperatura": temperatura,
+        "irradiacion_solar": irradiacion_solar,
+        "placas": placas,
+        "Produccion_solar_kwh": produccion_solar_kwh
+    }
+
+    send_message(topic_name, mensaje)
     
