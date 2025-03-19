@@ -62,4 +62,6 @@ while True:
         "placas": placas,
         "Produccion_solar_kwh": produccion_solar_kwh
     }
+
+    send_message(topic_name, mensaje)
     
