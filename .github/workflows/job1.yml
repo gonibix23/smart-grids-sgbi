@@ -1,0 +1,69 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: Build and Push Kafka Producer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest ./kafka_producer
+          docker push ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest
+
+      - name: Build and Push Spark Consumer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest ./spark_consumer
+          docker push ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest
+
+      - name: Set up Kubernetes (Kind)
+        uses: helm/kind-action@v1.8.0
+
+      - name: Deploy Kafka Producer
+        run: kubectl apply -f ./kafka_producer/kafka-producer.yaml
+
+      - name: Deploy Spark Consumer
+        run: kubectl apply -f ./spark_consumer/spark-consumer.yaml
+
+      - name: Deploy TimescaleDB
+        run: kubectl apply -f ./timescaledb/timescaledb-cluster.yaml
+
+      - name: Wait for Pods to Be Ready
+        run: |
+          sleep 20
+          kubectl get pods
+
+      - name: Verify TimescaleDB Tables
+        run: |
+          sleep 10
+          POD_NAME=$(kubectl get pods --selector=app=timescaledb -o jsonpath='{.items[0].metadata.name}')
+          OUTPUT=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -c "\d+" 2>&1)
+
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -q "Did not find any relations."; then
+            echo "❌ No tables found in TimescaleDB! Failing the test."
+            exit 1
+          else
+            echo "✅ Tables detected in TimescaleDB."
+          fi
+
+      - name: Cleanup Kubernetes Resources
+        run: |
+          kubectl delete -f ./kafka_producer/kafka-producer.yaml
+          kubectl delete -f ./spark_consumer/spark-consumer.yaml
+          kubectl delete -f ./timescaledb/timescaledb-cluster.yaml
+
