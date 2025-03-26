@@ -44,9 +44,11 @@ jobs:
       - name: Wait for Pods to Be Ready
         run: |
           echo "Waiting for Kafka, Spark, and TimescaleDB pods to be in 'Running' state..."
-          kubectl wait --for=condition=ready pod -l app=kafka --timeout=300s
-          kubectl wait --for=condition=ready pod -l app=spark --timeout=300s
-          kubectl wait --for=condition=ready pod -l app=timescaledb --timeout=300s
+          PODS=$(kubectl get pods --output=jsonpath='{.items[*].metadata.name}')
+          for POD in $PODS; do
+            echo "Waiting for pod $POD to be ready..."
+            kubectl wait --for=condition=ready pod/$POD --timeout=300s
+          done
           kubectl get pods
 
       - name: Verify TimescaleDB Tables
