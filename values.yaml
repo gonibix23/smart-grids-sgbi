@@ -1,0 +1,167 @@
+# Valores predeterminados para sgbi.
+# Este archivo configura Kafka, Spark y TimescaleDB en namespaces separados.
+
+replicaCount: 1
+
+# Configuración de imágenes
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# Overrides de nombres
+#nameOverride: ""
+#fullnameOverride: ""
+
+# Namespaces específicos
+namespaceKafka: kafka
+namespaceSpark: spark
+namespaceDatabase: database
+
+# Configuración de Kafka
+kafka:
+  enabled: true
+  fullnameOverride: sgbi-kafka
+  namespaceOverride: kafka
+  replicaCount: 3
+  image:
+    repository: bitnami/kafka
+    tag: latest
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  service:
+    port: 9092
+  # Configuración adicional para Kafka
+  kafka:
+    # Lista de topics a crear
+    topics:
+      - name: topic1
+        partitions: 1
+        replicationFactor: 1
+        config:
+          retention.ms: 3600000
+      - name: topic2
+        partitions: 1
+        replicationFactor: 1
+        config:
+          retention.ms: 540000
+
+# Configuración de Spark
+spark:
+  enabled: true
+  fullnameOverride: sgbi-spark
+  namespaceOverride: spark
+  replicaCount: 3
+  image:
+    repository: bitnami/spark
+    tag: latest
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+  service:
+    port: 7077
+  # Configuración adicional para Spark
+  spark:
+    master:
+      replicas: 1
+    worker:
+      replicas: 2
+
+# Configuración de TimescaleDB
+timescaledb:
+  enabled: true
+  fullnameOverride: sgbi-timescaledb-single
+  namespaceOverride: database
+  replicaCount: 1
+  image:
+    repository: timescale/timescaledb
+    tag: latest-pg14
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+    requests:
+      cpu: "250m"
+      memory: "1Gi"
+  service:
+    port: 5432
+  # Configuración adicional para TimescaleDB
+  timescaledb:
+    primary:
+      persistence:
+        enabled: true
+        size: 5Gi
+    secondary:
+      enabled: false
+    credentials:
+      postgresPassword: "your_secure_password"
+    # Configuración de backups
+    backups:
+      enabled: true
+      schedule: "0 0 * * *"
+      retention: 7
+
+# Configuración general del servicio
+service:
+  type: ClusterIP
+  port: 80
+
+# Autoescalado (desactivado por defecto)
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+# Configuración de volumen (para persistencia)
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Configuración de Kafka Producer (opcional, si se necesita)
+kafkaProducer:
+  enabled: false
+  fullnameOverride: sgbi-kafka-producer
+  namespaceOverride: kafka
+  image:
+    repository: myrepo/kafka-producer  # Nombre de la imagen construida
+    tag: latest
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  service:
+    port: 5000
+
+# Configuración de Spark Consumer (opcional, si se necesita)
+sparkConsumer:
+  enabled: false
+  fullnameOverride: sgbi-spark-consumer
+  namespaceOverride: spark
+  image:
+    repository: myrepo/spark-consumer
+    tag: latest
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+  service:
+    port: 8080

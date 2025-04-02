@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-spark
+  namespace: {{ .Values.spark.namespaceOverride }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark
+  template:
+    metadata:
+      labels:
+        app: spark
+    spec:
+      containers:
+        - name: spark
+          image: {{ .Values.spark.image.repository }}:{{ .Values.spark.image.tag }}
+          ports:
+            - containerPort: 8080
+            - containerPort: 7077
+          env:
+            - name: SPARK_MODE
+              value: "master"
+            - name: SPARK_JARS_DIR
+              value: "/opt/spark"
+          volumeMounts:
+            - mountPath: /opt/spark-apps
+              name: spark-apps
+          command: ["/bin/sh", "-c", "pip install --no-cache-dir -r requirements.txt && tail -f /dev/null & exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark-apps/spark_consumer.py"]
+      volumes:
+        - name: spark-apps
+          configMap:
+            name: spark-apps-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-spark
+  namespace: {{ .Values.spark.namespaceOverride }}
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+    - port: 7077
+      targetPort: 7077
+  selector:
+    app: spark

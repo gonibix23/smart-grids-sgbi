@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-spark
+  namespace: {{ .Values.spark.namespaceOverride }}
+spec:
+  ports:
+    - port: 7077
+      targetPort: 7077
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: spark

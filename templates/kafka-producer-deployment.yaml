@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-kafka-producer
+  namespace: {{ .Values.kafkaProducer.namespaceOverride }}
+  labels:
+    app: {{ .Release.Name }}-kafka-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-kafka-producer
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-kafka-producer
+    spec:
+      containers:
+        - name: kafka-producer
+          image: {{ .Values.kafkaProducer.image.repository }}:{{ .Values.kafkaProducer.image.tag }}  # La imagen que construimos a partir del Dockerfile
+          ports:
+            - containerPort: 5000
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka:9092" # Dirección del broker Kafka
+          resources:
+            limits:
+              cpu: {{ .Values.kafkaProducer.resources.limits.cpu }}
+              memory: {{ .Values.kafkaProducer.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.kafkaProducer.resources.requests.cpu }}
+              memory: {{ .Values.kafkaProducer.resources.requests.memory }}
+          volumeMounts:
+            - mountPath: /app/scripts
+              name: kafka-scripts
+      volumes:
+        - name: kafka-scripts
+          hostPath:
+            path: ./kafka_producer/scripts # Ruta de los scripts en el host
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-kafka-producer
+  namespace: {{ .Values.kafkaProducer.namespaceOverride }}
+  labels:
+    app: {{ .Release.Name }}-kafka-producer
+spec:
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: {{ .Release.Name }}-kafka-producer

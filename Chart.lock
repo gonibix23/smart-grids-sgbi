@@ -1,0 +1,12 @@
+dependencies:
+- name: kafka
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 22.1.4
+- name: spark
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 9.3.5
+- name: timescaledb-single
+  repository: https://charts.timescale.com/
+  version: 0.33.1
+digest: sha256:1c390d5fc3c50246062134279c30d17273a69e33ca102e120044d5270f149c71
+generated: "2025-03-05T19:59:50.6250285+01:00"

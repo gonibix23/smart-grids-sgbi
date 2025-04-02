@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-spark-consumer
+  namespace: {{ .Values.sparkConsumer.namespaceOverride }}
+  labels:
+    app: {{ .Release.Name }}-spark-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-spark-consumer
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-spark-consumer
+    spec:
+      containers:
+        - name: spark-consumer
+          image: "python:3.9" # Usando imagen base de Python
+          command: ["/bin/sh", "-c", "pip install --no-cache-dir -r /opt/spark/requirements.txt && exec spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 /opt/spark/scripts/spark_consumer.py"]
+          ports:
+            - containerPort: 8080
+            - containerPort: 7077
+          volumeMounts:
+            - mountPath: /opt/spark/scripts
+              name: spark-scripts
+          env:
+            - name: SPARK_MASTER
+              value: "spark://spark:7077"
+          resources:
+            limits:
+              cpu: {{ .Values.sparkConsumer.resources.limits.cpu }}
+              memory: {{ .Values.sparkConsumer.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.sparkConsumer.resources.requests.cpu }}
+              memory: {{ .Values.sparkConsumer.resources.requests.memory }}
+      volumes:
+        - name: spark-scripts
+          hostPath:
+            path: ./spark_consumer/scripts # Ruta de los scripts en el host
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-spark-consumer
+  namespace: {{ .Values.sparkConsumer.namespaceOverride }}
+  labels:
+    app: {{ .Release.Name }}-spark-consumer
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - port: 7077
+      targetPort: 7077
+      protocol: TCP
+  selector:
+    app: {{ .Release.Name }}-spark-consumer
