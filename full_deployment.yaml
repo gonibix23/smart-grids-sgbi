@@ -17,6 +17,8 @@ data:
         user: myuser
         secureJsonData:
           password: mypassword
+        jsonData:
+          sslmode: "disable"
         isDefault: false
 ---
 # =================== DEPLOYMENT GRAFANA ===================

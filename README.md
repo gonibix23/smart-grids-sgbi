@@ -22,7 +22,7 @@ docker login
 
 ## Full Deployment
 ```bash
-kubectl apply -f all.yaml
+kubectl apply -f full_deployment.yaml
 ```
 
 ## Kafka
