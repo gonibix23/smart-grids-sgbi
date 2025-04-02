@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: grafana
-        image: grafana/grafana:latest
+        image: grafana/grafana:11.6.0
         ports:
         - containerPort: 3000
         env:
@@ -44,7 +44,7 @@ spec:
           value: "admin"
         volumeMounts:
         - name: grafana-provisioning
-          mountPath: /etc/grafana/provisioning
+          mountPath: /etc/grafana/provisioning/datasources
         - name: grafana-storage
           mountPath: /var/lib/grafana
       volumes:
