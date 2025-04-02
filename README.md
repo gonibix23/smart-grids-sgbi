@@ -20,8 +20,21 @@ https://docs.docker.com/desktop/setup/sign-in/
 docker login
 ```
 
+## Full Deployment
+```bash
+kubectl apply -f all.yaml
+```
+
 ## Kafka
-### Check Pods
+### Create Kafka Cluster
+```bash
+kubectl apply -f ./kafka/kafka-cluster.yaml
+```
+
+### Delete Kafka Cluster
+```bash
+kubectl delete -f ./kafka/kafka-cluster.yaml
+```
 
 ## Kafka Producer
 ### Build Kafka Producer container
@@ -96,11 +109,31 @@ kubectl exec -it timescaledb-xxxx -- bash
 psql -U myuser -d mydb
 ```
 
+### Check databases in TimescaleDB
+```sql
+\l
+```
+
+### Select the database
+```sql
+\c mydb
+```
+
+### Check tables in TimescaleDB
+```sql
+\dt
+```
+
 ```sql
 SELECT * FROM kafka_messages;
 ```
 
 ## Grafana TODO: Configurar el servicio de grafana en kubernetes
+
+### Create Grafana ConfigMap
+```bash
+kubectl apply -f ./grafana/provisioning/grafana-datasources.yaml
+```
 
 ### Create Grafana
 ```bash
@@ -110,4 +143,9 @@ kubectl apply -f ./grafana/grafana.yaml
 ### Delete Grafana
 ```bash
 kubectl delete -f ./grafana/grafana.yaml
+```
+
+### Access Grafana
+```bash
+localhost:32000
 ```
