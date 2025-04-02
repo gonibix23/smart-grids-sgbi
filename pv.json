@@ -1,0 +1,46 @@
+{
+    "apiVersion": "v1",
+    "kind": "PersistentVolume",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"PersistentVolume\",\"metadata\":{\"annotations\":{},\"name\":\"timescaledb-pv\"},\"spec\":{\"accessModes\":[\"ReadWriteOnce\"],\"capacity\":{\"storage\":\"1Gi\"},\"hostPath\":{\"path\":\"/tmp/timescaledb-data\"},\"storageClassName\":\"local-storage\"}}\n",
+            "pv.kubernetes.io/bound-by-controller": "yes"
+        },
+        "creationTimestamp": "2025-04-02T18:46:45Z",
+        "deletionGracePeriodSeconds": 0,
+        "deletionTimestamp": "2025-04-02T17:43:38Z",
+        "finalizers": [
+            "kubernetes.io/pv-protection"
+        ],
+        "name": "timescaledb-pv",
+        "resourceVersion": "43878",
+        "uid": "4c6b26d4-3b90-4560-b820-aa131694f637"
+    },
+    "spec": {
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "capacity": {
+            "storage": "1Gi"
+        },
+        "claimRef": {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "name": "grafana-pvc",
+            "namespace": "default",
+            "resourceVersion": "37754",
+            "uid": "004209ae-710e-4648-992a-b2dd6a21bec2"
+        },
+        "hostPath": {
+            "path": "/tmp/timescaledb-data",
+            "type": ""
+        },
+        "persistentVolumeReclaimPolicy": "Retain",
+        "storageClassName": "local-storage",
+        "volumeMode": "Filesystem"
+    },
+    "status": {
+        "lastPhaseTransitionTime": "2025-04-02T18:47:34Z",
+        "phase": "Bound"
+    }
+}
