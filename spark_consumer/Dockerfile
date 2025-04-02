@@ -27,4 +27,4 @@ COPY ./jars /opt/spark/jars
 COPY ./scripts/ .
 
 # Configurar el entrypoint para ejecutar spark-submit con el script principal
-CMD ["spark-submit", "--packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1", "spark_consumer.py"]
+CMD ["spark-submit", "--packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1", "spark_consumer_f.py"]

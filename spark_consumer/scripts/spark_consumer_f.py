@@ -44,15 +44,16 @@ def start_streaming_job():
                 )
                 cursor = conn.cursor()
                 cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS kafka_messages (
-                        id SERIAL PRIMARY KEY,
-                        fecha DATE,
-                        consumo_kwh FLOAT,
-                        temperatura FLOAT,
-                        irradiacion_solar FLOAT,
-                        Tiene_Placas BOOLEAN,
-                        Produccion_Solar_Kwh FLOAT,
-                        timestamp TIMESTAMPTZ DEFAULT NOW()
+                    CREATE TABLE IF NOT EXISTS CONSUMOS (
+                        ID SERIAL PRIMARY KEY,
+                        ID_CASA VARCHAR(255),
+                        FECHA DATE,
+                        CONSUMO_KWH FLOAT,
+                        TEMPERATURA FLOAT,
+                        IRRADIACION_SOLAR FLOAT,
+                        PLACAS BOOLEAN,
+                        PRODUCCION_SOLAR_KWH FLOAT,
+                        TIMESTAMP TIMESTAMPTZ DEFAULT NOW()
                     );
                 """)
                 conn.commit()
@@ -100,15 +101,16 @@ def start_streaming_job():
             try:
                 data = json.loads(row.value)
                 cursor.execute("""
-                    INSERT INTO kafka_messages (fecha, consumo_kwh, temperatura, irradiacion_solar, Tiene_Placas, Produccion_Solar_Kwh) 
-                    VALUES (%s, %s, %s, %s, %s, %s);
-                """, (
-                    data['fecha'], 
-                    data['consumo_kwh'], 
-                    data['temperatura'], 
-                    data['irradiacion_solar'], 
-                    data['Tiene_Placas'], 
-                    data['Produccion_Solar_Kwh']
+                    INSERT INTO CONSUMOS (ID_CASA, FECHA, CONSUMO_KWH, TEMPERATURA, IRRADIACION_SOLAR, PLACAS, PRODUCCION_SOLAR_KWH)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s);
+                    """, (
+                    data['ID_CASA'],
+                    data['FECHA'],
+                    data['CONSUMO_KWH'],
+                    data['TEMPERATURA'],
+                    data['IRRADIACION_SOLAR'],
+                    data['PLACAS'],
+                    data['PRODUCCION_SOLAR_KWH']
                 ))
                 conn.commit()
                 print("Message inserted into database.")
