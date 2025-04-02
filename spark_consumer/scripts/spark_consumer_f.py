@@ -32,7 +32,7 @@ def start_streaming_job():
 
         df_messages = df.selectExpr("CAST(value AS STRING)")
 
-        #Función para crear la tabla y la hipertabla
+        # Función para crear la tabla y la hipertabla
         def create_table_and_hypertable():
             try:
                 conn = psycopg2.connect(
@@ -46,8 +46,13 @@ def start_streaming_job():
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS kafka_messages (
                         id SERIAL PRIMARY KEY,
-                        timestamp TIMESTAMPTZ DEFAULT NOW(),
-                        data JSONB
+                        fecha DATE,
+                        consumo_kwh FLOAT,
+                        temperatura FLOAT,
+                        irradiacion_solar FLOAT,
+                        Tiene_Placas BOOLEAN,
+                        Produccion_Solar_Kwh FLOAT,
+                        timestamp TIMESTAMPTZ DEFAULT NOW()
                     );
                 """)
                 conn.commit()
@@ -93,7 +98,18 @@ def start_streaming_job():
 
             print(f"Message received: {row.value}")
             try:
-                cursor.execute("INSERT INTO kafka_messages (data) VALUES (%s);", [row.value])
+                data = json.loads(row.value)
+                cursor.execute("""
+                    INSERT INTO kafka_messages (fecha, consumo_kwh, temperatura, irradiacion_solar, Tiene_Placas, Produccion_Solar_Kwh) 
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                """, (
+                    data['fecha'], 
+                    data['consumo_kwh'], 
+                    data['temperatura'], 
+                    data['irradiacion_solar'], 
+                    data['Tiene_Placas'], 
+                    data['Produccion_Solar_Kwh']
+                ))
                 conn.commit()
                 print("Message inserted into database.")
             except Exception as db_err:
