@@ -149,7 +149,20 @@ spec:
           value: "PLAINTEXT://kafka:9092"
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
           value: "true"
-
+---
+# =================== SERVICE KAFKA ===================
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - protocol: TCP
+      port: 9092
+      targetPort: 9092
+  type: ClusterIP
 ---
 # =================== DEPLOYMENT KAFKA PRODUCER ===================
 apiVersion: apps/v1
