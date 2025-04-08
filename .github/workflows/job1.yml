@@ -35,12 +35,6 @@ jobs:
       - name: Deploy pods
         run: kubectl apply -f ./full_deployment.yaml
 
-      - name: Port-forward Kafka Service
-        run: |
-          kubectl port-forward svc/kafka 9092:9092 &  # Run port-forward in the background
-          PF_PID=$!  # Get the process ID of port-forwarding
-          sleep 5  # Wait a bit to ensure port-forward is up
-
       - name: Wait for Pods to Be Ready
         run: |
           echo "Waiting for Kafka, Spark, and TimescaleDB pods to be in 'Running' state..."
@@ -51,23 +45,34 @@ jobs:
           done
           kubectl get pods
 
-      - name: Verify TimescaleDB Tables
+      - name: Port-forward Kafka Service
+        run: |
+          kubectl port-forward svc/kafka 9092:9092 &  # Run port-forward in the background
+          PF_PID=$! # Get the process ID of port-forwarding
+          sleep 5  # Wait a bit to ensure port-forward is up
+
+      - name: Verify data insertions
         run: |
           POD_NAME=$(kubectl get pods --selector=app=timescaledb -o jsonpath='{.items[0].metadata.name}')
-          OUTPUT=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -c "\d+" 2>&1)
+          LAST_TIMESTAMP=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -t -c "SELECT EXTRACT(EPOCH FROM timestamp) FROM kafka_messages ORDER BY timestamp DESC LIMIT 1;" | tr -d '[:space:]')
+          echo "Last timestamp (Unix epoch) in 'kafka_messages' table: $LAST_TIMESTAMP"  # Debug output
+          LAST_TIMESTAMP_INT=$(echo $LAST_TIMESTAMP | cut -d '.' -f 1)
+          CURRENT_TIMESTAMP=$(date -u +%s)
+          TIME_DIFF=$((CURRENT_TIMESTAMP - LAST_TIMESTAMP_INT))
+          echo "Time difference: $TIME_DIFF seconds"
 
-          echo "$OUTPUT"
-
-          if echo "$OUTPUT" | grep -q "Did not find any relations."; then
-            echo "❌ No tables found in TimescaleDB! Failing the test."
-            exit 1
+          if [ "$TIME_DIFF" -le 30 ]; then
+            echo "✅ The last message was added within the last 30 seconds."
           else
-            echo "✅ Tables detected in TimescaleDB."
+            echo "❌ The last message was added more than 30 seconds ago."
+            exit 1
           fi
 
       - name: Cleanup Resources
         if: always()
         run: |
           kubectl delete -f ./full_deployment.yaml
-          kill $PF_PID
+          if [ -n "$PF_PID" ]; then  # Check if PF_PID is not empty
+            kill $PF_PID
+          fi
 
