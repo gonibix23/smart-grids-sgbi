@@ -32,14 +32,14 @@ jobs:
       - name: Set up Kubernetes (Kind)
         uses: helm/kind-action@v1.8.0
 
-      - name: Deploy Kafka Producer
-        run: kubectl apply -f ./kafka_producer/kafka-producer.yaml
+      - name: Deploy pods
+        run: kubectl apply -f ./full_deployment.yaml
 
-      - name: Deploy Spark Consumer
-        run: kubectl apply -f ./spark_consumer/spark-consumer.yaml
-
-      - name: Deploy TimescaleDB
-        run: kubectl apply -f ./timescaledb/timescaledb-cluster.yaml
+      - name: Port-forward Kafka Service
+        run: |
+          kubectl port-forward svc/kafka 9092:9092 &  # Run port-forward in the background
+          PF_PID=$!  # Get the process ID of port-forwarding
+          sleep 5  # Wait a bit to ensure port-forward is up
 
       - name: Wait for Pods to Be Ready
         run: |
@@ -65,9 +65,9 @@ jobs:
             echo "✅ Tables detected in TimescaleDB."
           fi
 
-      - name: Cleanup Kubernetes Resources
+      - name: Cleanup Resources
+        if: always()
         run: |
-          kubectl delete -f ./kafka_producer/kafka-producer.yaml
-          kubectl delete -f ./spark_consumer/spark-consumer.yaml
-          kubectl delete -f ./timescaledb/timescaledb-cluster.yaml
+          kubectl delete -f ./full_deployment.yaml
+          kill $PF_PID
 
