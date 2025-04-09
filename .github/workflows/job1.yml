@@ -54,7 +54,7 @@ jobs:
       - name: Verify data insertions
         run: |
           POD_NAME=$(kubectl get pods --selector=app=timescaledb -o jsonpath='{.items[0].metadata.name}')
-          LAST_TIMESTAMP=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -t -c "SELECT EXTRACT(EPOCH FROM timestamp) FROM kafka_messages ORDER BY timestamp DESC LIMIT 1;" | tr -d '[:space:]')
+          LAST_TIMESTAMP=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -t -c "SELECT EXTRACT(EPOCH FROM ts) FROM consumos ORDER BY ts DESC LIMIT 1;" | tr -d '[:space:]')
           echo "Last timestamp (Unix epoch) in 'kafka_messages' table: $LAST_TIMESTAMP"  # Debug output
           LAST_TIMESTAMP_INT=$(echo $LAST_TIMESTAMP | cut -d '.' -f 1)
           CURRENT_TIMESTAMP=$(date -u +%s)
