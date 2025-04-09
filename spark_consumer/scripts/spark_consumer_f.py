@@ -32,7 +32,7 @@ def start_streaming_job():
 
         df_messages = df.selectExpr("CAST(value AS STRING)")
 
-        #Función para crear la tabla y la hipertabla
+        # Función para crear la tabla y la hipertabla
         def create_table_and_hypertable():
             try:
                 conn = psycopg2.connect(
@@ -44,14 +44,20 @@ def start_streaming_job():
                 )
                 cursor = conn.cursor()
                 cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS kafka_messages (
-                        id SERIAL PRIMARY KEY,
-                        timestamp TIMESTAMPTZ DEFAULT NOW(),
-                        data JSONB
+                    CREATE TABLE IF NOT EXISTS CONSUMOS (
+                        ID SERIAL,
+                        ID_CASA TEXT,
+                        CONSUMO_KWH FLOAT,
+                        TEMPERATURA FLOAT,
+                        IRRADIACION_SOLAR FLOAT,
+                        PLACAS BOOLEAN,
+                        PRODUCCION_SOLAR_KWH FLOAT,
+                        ts TIMESTAMPTZ DEFAULT NOW(),
+                        PRIMARY KEY (ts, ID)
                     );
                 """)
                 conn.commit()
-                cursor.execute("SELECT create_hypertable('kafka_messages', 'timestamp', if_not_exists => TRUE);")
+                cursor.execute("SELECT create_hypertable('CONSUMOS', 'ts', if_not_exists => TRUE);")
                 conn.commit()
                 cursor.close()
                 conn.close()
@@ -93,7 +99,18 @@ def start_streaming_job():
 
             print(f"Message received: {row.value}")
             try:
-                cursor.execute("INSERT INTO kafka_messages (data) VALUES (%s);", [row.value])
+                data = json.loads(row.value)
+                cursor.execute("""
+                    INSERT INTO CONSUMOS (ID_CASA, CONSUMO_KWH, TEMPERATURA, IRRADIACION_SOLAR, PLACAS, PRODUCCION_SOLAR_KWH)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                    """, (
+                    data['ID_CASA'],
+                    data['CONSUMO_KWH'],
+                    data['TEMPERATURA'],
+                    data['IRRADIACION_SOLAR'],
+                    data['PLACAS'],
+                    data['PRODUCCION_SOLAR_KWH']
+                ))
                 conn.commit()
                 print("Message inserted into database.")
             except Exception as db_err:
