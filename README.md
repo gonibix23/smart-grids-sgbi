@@ -86,7 +86,7 @@ psql -U myuser -d mydb
 ```
 
 ```sql
-SELECT * FROM kafka_messages;
+SELECT * FROM consumos;
 ```
 
 ## Grafana

@@ -45,19 +45,19 @@ def start_streaming_job():
                 cursor = conn.cursor()
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS CONSUMOS (
-                        ID SERIAL PRIMARY KEY,
-                        ID_CASA VARCHAR(255),
-                        FECHA DATE,
+                        ID SERIAL,
+                        ID_CASA TEXT,
                         CONSUMO_KWH FLOAT,
                         TEMPERATURA FLOAT,
                         IRRADIACION_SOLAR FLOAT,
                         PLACAS BOOLEAN,
                         PRODUCCION_SOLAR_KWH FLOAT,
-                        TIMESTAMP TIMESTAMPTZ DEFAULT NOW()
+                        ts TIMESTAMPTZ DEFAULT NOW(),
+                        PRIMARY KEY (ts, ID)
                     );
                 """)
                 conn.commit()
-                cursor.execute("SELECT create_hypertable('kafka_messages', 'timestamp', if_not_exists => TRUE);")
+                cursor.execute("SELECT create_hypertable('CONSUMOS', 'ts', if_not_exists => TRUE);")
                 conn.commit()
                 cursor.close()
                 conn.close()
@@ -101,11 +101,10 @@ def start_streaming_job():
             try:
                 data = json.loads(row.value)
                 cursor.execute("""
-                    INSERT INTO CONSUMOS (ID_CASA, FECHA, CONSUMO_KWH, TEMPERATURA, IRRADIACION_SOLAR, PLACAS, PRODUCCION_SOLAR_KWH)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s);
+                    INSERT INTO CONSUMOS (ID_CASA, CONSUMO_KWH, TEMPERATURA, IRRADIACION_SOLAR, PLACAS, PRODUCCION_SOLAR_KWH)
+                    VALUES (%s, %s, %s, %s, %s, %s);
                     """, (
                     data['ID_CASA'],
-                    data['FECHA'],
                     data['CONSUMO_KWH'],
                     data['TEMPERATURA'],
                     data['IRRADIACION_SOLAR'],
