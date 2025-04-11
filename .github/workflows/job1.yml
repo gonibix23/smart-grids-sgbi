@@ -1,0 +1,78 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: Build and Push Kafka Producer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest ./kafka_producer
+          docker push ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest
+
+      - name: Build and Push Spark Consumer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest ./spark_consumer
+          docker push ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest
+
+      - name: Set up Kubernetes (Kind)
+        uses: helm/kind-action@v1.8.0
+
+      - name: Deploy pods
+        run: kubectl apply -f ./full_deployment.yaml
+
+      - name: Wait for Pods to Be Ready
+        run: |
+          echo "Waiting for Kafka, Spark, and TimescaleDB pods to be in 'Running' state..."
+          PODS=$(kubectl get pods --output=jsonpath='{.items[*].metadata.name}')
+          for POD in $PODS; do
+            echo "Waiting for pod $POD to be ready..."
+            kubectl wait --for=condition=ready pod/$POD --timeout=300s
+          done
+          kubectl get pods
+
+      - name: Port-forward Kafka Service
+        run: |
+          kubectl port-forward svc/kafka 9092:9092 &  # Run port-forward in the background
+          PF_PID=$! # Get the process ID of port-forwarding
+          sleep 5  # Wait a bit to ensure port-forward is up
+
+      - name: Verify data insertions
+        run: |
+          POD_NAME=$(kubectl get pods --selector=app=timescaledb -o jsonpath='{.items[0].metadata.name}')
+          LAST_TIMESTAMP=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -t -c "SELECT EXTRACT(EPOCH FROM ts) FROM consumos ORDER BY ts DESC LIMIT 1;" | tr -d '[:space:]')
+          echo "Last timestamp (Unix epoch) in 'kafka_messages' table: $LAST_TIMESTAMP"  # Debug output
+          LAST_TIMESTAMP_INT=$(echo $LAST_TIMESTAMP | cut -d '.' -f 1)
+          CURRENT_TIMESTAMP=$(date -u +%s)
+          TIME_DIFF=$((CURRENT_TIMESTAMP - LAST_TIMESTAMP_INT))
+          echo "Time difference: $TIME_DIFF seconds"
+
+          if [ "$TIME_DIFF" -le 30 ]; then
+            echo "✅ The last message was added within the last 30 seconds."
+          else
+            echo "❌ The last message was added more than 30 seconds ago."
+            exit 1
+          fi
+
+      - name: Cleanup Resources
+        if: always()
+        run: |
+          kubectl delete -f ./full_deployment.yaml
+          if [ -n "$PF_PID" ]; then  # Check if PF_PID is not empty
+            kill $PF_PID
+          fi
+
