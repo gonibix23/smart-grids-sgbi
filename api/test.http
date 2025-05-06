@@ -1,0 +1,12 @@
+###
+POST http://localhost:30001/data
+Content-Type: application/json
+
+{
+	"id_casa": "CASA_INVENTADA",
+    "consumo_kwh": 0.123,
+    "temperatura": 25.0,
+    "irradiacion_solar": 0,
+    "placas": true,
+    "produccion_solar_kwh": 0.456
+}
