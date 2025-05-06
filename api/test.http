@@ -3,7 +3,7 @@ POST http://localhost:30002/ingest
 Content-Type: application/json
 
 {
-	"id_casa": "CASA_INVENTADA50",
+	"id_casa": "CASA_INVENTADA",
     "consumo_kwh": 0.123,
     "temperatura": 25.0,
     "irradiacion_solar": 0,
