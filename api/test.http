@@ -1,5 +1,5 @@
 ###
-POST http://localhost:30001/data
+POST http://localhost:30002/ingest
 Content-Type: application/json
 
 {

@@ -181,25 +181,10 @@ spec:
     spec:
       containers:
       - name: kafka-producer
-        image: gonibix23/kafka_producer:latest
+        image: laquin/kafka_producer:latest
         env:
           - name: KAFKA_BOOTSTRAP_SERVERS
             value: "kafka:9092"
----
-# =================== SERVICE KAFKA PRODUCER GATEWAY ===================
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka-producer
-spec:
-  selector:
-    app: kafka-producer
-  ports:
-  - protocol: TCP
-    port: 5001
-    targetPort: 5001
-    nodePort: 30002
-  type: NodePort
 ---
 # =================== DEPLOYMENT SPARK CONSUMER ===================
 apiVersion: apps/v1
@@ -218,7 +203,7 @@ spec:
     spec:
       containers:
       - name: spark-consumer
-        image: gonibix23/spark_consumer:latest
+        image: laquin/spark_consumer:latest
         env:
           - name: SPARK_MODE
             value: "master"
@@ -230,20 +215,6 @@ spec:
           - containerPort: 8080
           - containerPort: 7077
 ---
-# =================== PERSISTENT VOLUME TIMESCALEDB ===================
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: timescaledb-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /tmp/timescaledb-data
-  storageClassName: "local-storage"
----
 # =================== PVC TIMESCALEDB ===================
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -254,8 +225,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
+      cpu: 250m
+      memory: 1Gi
       storage: 1Gi
-  storageClassName: "local-storage"
+  storageClassName: standard-rwo
 ---
 # =================== DEPLOYMENT TIMESCALEDB ===================
 apiVersion: apps/v1
@@ -284,9 +257,11 @@ spec:
             value: "myuser"
           - name: POSTGRES_PASSWORD
             value: "mypassword"
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
         volumeMounts:
           - name: timescaledb-data
-            mountPath: /var/lib/postgresql/data
+            mountPath: /var/lib/postgresql
       volumes:
         - name: timescaledb-data
           persistentVolumeClaim:
@@ -324,6 +299,13 @@ spec:
       containers:
       - name: api
         image: laquin/api:latest
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
         - containerPort: 5000
         env:
@@ -350,5 +332,5 @@ spec:
   - protocol: TCP
     port: 5000
     targetPort: 5000
-    nodePort: 30001
-  type: NodePort
+  type: LoadBalancer
+

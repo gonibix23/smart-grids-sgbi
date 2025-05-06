@@ -1,2 +1,4 @@
 flask
 kafka-python>=2.0.2
+fastapi
+uvicorn
