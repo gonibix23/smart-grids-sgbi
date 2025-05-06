@@ -1,9 +1,9 @@
 ###
-POST http://localhost:30001/data
+POST http://localhost:30002/ingest
 Content-Type: application/json
 
 {
-	"id_casa": "CASA_INVENTADA",
+	"id_casa": "CASA_INVENTADA50",
     "consumo_kwh": 0.123,
     "temperatura": 25.0,
     "irradiacion_solar": 0,

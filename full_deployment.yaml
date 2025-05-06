@@ -186,6 +186,21 @@ spec:
           - name: KAFKA_BOOTSTRAP_SERVERS
             value: "kafka:9092"
 ---
+# =================== SERVICE KAFKA PRODUCER GATEWAY ===================
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-producer
+spec:
+  selector:
+    app: kafka-producer
+  ports:
+  - protocol: TCP
+    port: 5001
+    targetPort: 5001
+    nodePort: 30002
+  type: NodePort
+---
 # =================== DEPLOYMENT SPARK CONSUMER ===================
 apiVersion: apps/v1
 kind: Deployment
