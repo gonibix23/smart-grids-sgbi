@@ -10,6 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY scripts/ .
 
 # Expone el puerto 5000 si es necesario (por ejemplo, si usas Flask)
-EXPOSE 5000
+EXPOSE 5001
 
 CMD ["python", "kafka_producer.py"]

@@ -44,20 +44,20 @@ def start_streaming_job():
                 )
                 cursor = conn.cursor()
                 cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS CONSUMOS (
-                        ID SERIAL,
-                        ID_CASA TEXT,
-                        CONSUMO_KWH FLOAT,
-                        TEMPERATURA FLOAT,
-                        IRRADIACION_SOLAR FLOAT,
-                        PLACAS BOOLEAN,
-                        PRODUCCION_SOLAR_KWH FLOAT,
+                    CREATE TABLE IF NOT EXISTS consumos (
+                        id SERIAL,
+                        id_casa TEXT,
+                        consumo_kwh FLOAT,
+                        temperatura FLOAT,
+                        irradiacion_solar FLOAT,
+                        placas BOOLEAN,
+                        produccion_solar_kwh FLOAT,
                         ts TIMESTAMPTZ DEFAULT NOW(),
                         PRIMARY KEY (ts, ID)
                     );
                 """)
                 conn.commit()
-                cursor.execute("SELECT create_hypertable('CONSUMOS', 'ts', if_not_exists => TRUE);")
+                cursor.execute("SELECT create_hypertable('consumos', 'ts', if_not_exists => TRUE);")
                 conn.commit()
                 cursor.close()
                 conn.close()
@@ -97,19 +97,19 @@ def start_streaming_job():
                         conn.close()
                 return
 
-            print(f"Message received: {row.value}")
+            print(f"Message received 2: {row.value}")
             try:
                 data = json.loads(row.value)
                 cursor.execute("""
-                    INSERT INTO CONSUMOS (ID_CASA, CONSUMO_KWH, TEMPERATURA, IRRADIACION_SOLAR, PLACAS, PRODUCCION_SOLAR_KWH)
+                    INSERT INTO consumos (id_casa, consumo_kwh, temperatura, irradiacion_solar, placas, produccion_solar_kwh)
                     VALUES (%s, %s, %s, %s, %s, %s);
                     """, (
-                    data['ID_CASA'],
-                    data['CONSUMO_KWH'],
-                    data['TEMPERATURA'],
-                    data['IRRADIACION_SOLAR'],
-                    data['PLACAS'],
-                    data['PRODUCCION_SOLAR_KWH']
+                    data['id_casa'],
+                    data['consumo_kwh'],
+                    data['temperatura'],
+                    data['irradiacion_solar'],
+                    data['placas'],
+                    data['produccion_solar_kwh']
                 ))
                 conn.commit()
                 print("Message inserted into database.")
