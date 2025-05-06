@@ -50,6 +50,11 @@ jobs:
           done
           kubectl get pods
 
+      - name: Install pandas
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pandas
+
       - name: Run data loader for 15 seconds
         run: |
           python3 ./homes/data-loader.py &
