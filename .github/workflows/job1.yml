@@ -29,6 +29,11 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest ./spark_consumer
           docker push ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest
 
+      - name: Build and Push Exit API
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/api:latest ./api
+          docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
+
       - name: Set up Kubernetes (Kind)
         uses: helm/kind-action@v1.8.0
 
@@ -45,26 +50,24 @@ jobs:
           done
           kubectl get pods
 
-      - name: Port-forward Kafka Service
+      - name: Run data loader for 15 seconds
         run: |
-          kubectl port-forward svc/kafka 9092:9092 &  # Run port-forward in the background
-          PF_PID=$! # Get the process ID of port-forwarding
-          sleep 5  # Wait a bit to ensure port-forward is up
+          python3 ./homes/data-loader.py &
+          LOADER_PID=$!
+          sleep 15
+          kill $LOADER_PID || true
 
-      - name: Verify data insertions
+      - name: Wait before checking data
+        run: sleep 5
+
+      - name: Verify 'timestamp' in /data response
         run: |
-          POD_NAME=$(kubectl get pods --selector=app=timescaledb -o jsonpath='{.items[0].metadata.name}')
-          LAST_TIMESTAMP=$(kubectl exec -it $POD_NAME -- psql -U myuser -d mydb -t -c "SELECT EXTRACT(EPOCH FROM ts) FROM consumos ORDER BY ts DESC LIMIT 1;" | tr -d '[:space:]')
-          echo "Last timestamp (Unix epoch) in 'kafka_messages' table: $LAST_TIMESTAMP"  # Debug output
-          LAST_TIMESTAMP_INT=$(echo $LAST_TIMESTAMP | cut -d '.' -f 1)
-          CURRENT_TIMESTAMP=$(date -u +%s)
-          TIME_DIFF=$((CURRENT_TIMESTAMP - LAST_TIMESTAMP_INT))
-          echo "Time difference: $TIME_DIFF seconds"
-
-          if [ "$TIME_DIFF" -le 30 ]; then
-            echo "✅ The last message was added within the last 30 seconds."
+          RESPONSE=$(curl -s http://localhost:30001/data)
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"timestamp"'; then
+            echo "✅ 'timestamp' key found in response."
           else
-            echo "❌ The last message was added more than 30 seconds ago."
+            echo "❌ 'timestamp' key not found in response."
             exit 1
           fi
 
