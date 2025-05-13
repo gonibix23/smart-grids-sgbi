@@ -23,7 +23,7 @@ jobs:
 
       - name: Get GKE Credentials
         run: |
-          gcloud container clusters get-credentials CLUSTER_NAME \
+          gcloud container clusters get-credentials develop \
             --zone europe-southwest1 \
             --project ${{ secrets.GCLOUD_PROJECT }}
 
