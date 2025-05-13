@@ -181,7 +181,7 @@ spec:
     spec:
       containers:
       - name: kafka-producer
-        image: laquin/kafka_producer:latest
+        image: gonibix23/kafka_producer:latest
         env:
           - name: KAFKA_BOOTSTRAP_SERVERS
             value: "kafka:9092"
