@@ -52,7 +52,9 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
 
       - name: Deploy to GKE
-        run: kubectl apply -f ./gcloud_development.yaml
+        run: |
+          kubectl delete -f ./gcloud_development.yaml --ignore-not-found
+          kubectl apply -f ./gcloud_development.yaml
 
       - name: Verify Pods Status
         run: |
