@@ -55,6 +55,9 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install pandas
 
+      - name: Wait before inserting data
+        run: sleep 200
+
       - name: Run data loader for 15 seconds
         run: |
           python3 ./homes/data-loader.py &
@@ -63,7 +66,7 @@ jobs:
           kill $LOADER_PID || true
 
       - name: Wait before checking data
-        run: sleep 60
+        run: sleep 20
 
       - name: Verify 'timestamp' in /data response
         run: |
