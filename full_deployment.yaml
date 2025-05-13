@@ -218,7 +218,7 @@ spec:
     spec:
       containers:
       - name: spark-consumer
-        image: laquin/spark_consumer:latest
+        image: gonibix23/spark_consumer:latest
         env:
           - name: SPARK_MODE
             value: "master"
@@ -323,7 +323,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: laquin/api:latest
+        image: gonibix23/api:latest
         ports:
         - containerPort: 5000
         env:
