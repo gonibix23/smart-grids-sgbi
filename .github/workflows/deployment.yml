@@ -1,9 +1,14 @@
 name: CD Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   deploy-to-gcloud:
+    if: github.repository == 'gonibix23/smart-grids-sgbi'
     runs-on: ubuntu-latest
 
     steps:
