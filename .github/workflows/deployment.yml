@@ -53,8 +53,8 @@ jobs:
 
       - name: Deploy to GKE
         run: |
-          kubectl delete -f ./gcloud_development.yaml --ignore-not-found
-          kubectl apply -f ./gcloud_development.yaml
+          kubectl delete -f ./gcloud_deployment.yaml --ignore-not-found
+          kubectl apply -f ./gcloud_deployment.yaml
 
       - name: Verify Pods Status
         run: |
