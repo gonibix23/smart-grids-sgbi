@@ -56,7 +56,14 @@ jobs:
           pip install pandas
 
       - name: Wait before inserting data
-        run: sleep 200
+        run: sleep 180
+
+      - name: Port forward API service
+        run: |
+          kubectl port-forward svc/kafka-producer 30002:5001 &
+          kubectl port-forward svc/api 30001:5000 &
+          sleep 5
+          echo "Port forwarding started"
 
       - name: Run data loader for 15 seconds
         run: |
