@@ -63,7 +63,7 @@ jobs:
           kill $LOADER_PID || true
 
       - name: Wait before checking data
-        run: sleep 5
+        run: sleep 60
 
       - name: Verify 'timestamp' in /data response
         run: |
