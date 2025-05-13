@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   deploy-to-gcloud:
-    if: github.event_name == 'workflow_dispatch' || github.repository == 'gonibix23/smart-grids-sgbi'
     runs-on: ubuntu-latest
 
     steps:
