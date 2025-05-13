@@ -24,7 +24,7 @@ jobs:
       - name: Get GKE Credentials
         run: |
           gcloud container clusters get-credentials CLUSTER_NAME \
-            --zone ZONE \
+            --zone europe-southwest1 \
             --project ${{ secrets.GCLOUD_PROJECT }}
 
       - name: Set up Docker Buildx
