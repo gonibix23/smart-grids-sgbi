@@ -55,9 +55,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install pandas
 
-      - name: Wait before inserting data
-        run: sleep 180
-
       - name: Port forward API service
         run: |
           kubectl port-forward svc/kafka-producer 30002:5001 &
