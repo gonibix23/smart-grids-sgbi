@@ -46,6 +46,8 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, "raw-data.csv")
 
+    file_path = "raw-data.csv"
+
     try:
         df = pd.read_csv(file_path)
         df = df.sort_values(by=['fecha'])
