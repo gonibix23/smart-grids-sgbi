@@ -39,6 +39,13 @@ spec:
       containers:
       - name: grafana
         image: grafana/grafana:11.6.0
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
         - containerPort: 3000
         env:
@@ -89,6 +96,13 @@ spec:
       containers:
       - name: zookeeper
         image: bitnami/zookeeper:3.9.3
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
           - containerPort: 2181
         env:
@@ -134,6 +148,13 @@ spec:
       containers:
       - name: kafka
         image: bitnami/kafka:3.9.0
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
         - containerPort: 9092
         env:
@@ -181,7 +202,14 @@ spec:
     spec:
       containers:
       - name: kafka-producer
-        image: gonibix23/kafka_producer:latest
+        image: laquin/kafka_producer:latest
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         env:
           - name: KAFKA_BOOTSTRAP_SERVERS
             value: "kafka:9092"
@@ -198,8 +226,7 @@ spec:
   - protocol: TCP
     port: 5001
     targetPort: 5001
-    nodePort: 30002
-  type: NodePort
+  type: LoadBalancer
 ---
 # =================== DEPLOYMENT SPARK CONSUMER ===================
 apiVersion: apps/v1
@@ -218,7 +245,14 @@ spec:
     spec:
       containers:
       - name: spark-consumer
-        image: gonibix23/spark_consumer:latest
+        image: laquin/spark_consumer:latest
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         env:
           - name: SPARK_MODE
             value: "master"
@@ -230,20 +264,6 @@ spec:
           - containerPort: 8080
           - containerPort: 7077
 ---
-# =================== PERSISTENT VOLUME TIMESCALEDB ===================
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: timescaledb-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /tmp/timescaledb-data
-  storageClassName: "local-storage"
----
 # =================== PVC TIMESCALEDB ===================
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -254,8 +274,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
+      cpu: 250m
+      memory: 1Gi
       storage: 1Gi
-  storageClassName: "local-storage"
+  storageClassName: standard-rwo
 ---
 # =================== DEPLOYMENT TIMESCALEDB ===================
 apiVersion: apps/v1
@@ -275,6 +297,13 @@ spec:
       containers:
       - name: timescaledb
         image: timescale/timescaledb:latest-pg14
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
           - containerPort: 5432
         env:
@@ -284,9 +313,11 @@ spec:
             value: "myuser"
           - name: POSTGRES_PASSWORD
             value: "mypassword"
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
         volumeMounts:
           - name: timescaledb-data
-            mountPath: /var/lib/postgresql/data
+            mountPath: /var/lib/postgresql
       volumes:
         - name: timescaledb-data
           persistentVolumeClaim:
@@ -323,7 +354,14 @@ spec:
     spec:
       containers:
       - name: api
-        image: gonibix23/api:latest
+        image: laquin/api:latest
+        resources:
+          requests:
+            cpu: 250m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
         ports:
         - containerPort: 5000
         env:
@@ -350,5 +388,5 @@ spec:
   - protocol: TCP
     port: 5000
     targetPort: 5000
-    nodePort: 30001
-  type: NodePort
+  type: LoadBalancer
+

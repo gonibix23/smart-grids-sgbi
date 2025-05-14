@@ -1,3 +1,4 @@
+import json
 from flask import Flask, jsonify, request
 import psycopg2
 
@@ -22,13 +23,13 @@ def get_db_connection():
 @app.route('/data', methods=['GET'])
 def get_data():
     """
-    Endpoint para obtener datos de la tabla `kafka_messages`.
+    Endpoint para obtener datos de la tabla `consumos`.
     Permite filtrar por rango de fechas usando parámetros `start_date` y `end_date`.
     """
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
-    query = "SELECT * FROM kafka_messages"
+    query = "SELECT * FROM consumos"
     params = []
 
     if start_date and end_date:
@@ -62,15 +63,18 @@ def insert_data():
     Espera un JSON con la clave `data`.
     """
     content = request.json
-    if not content or 'data' not in content:
-        return jsonify({"error": "El cuerpo de la solicitud debe contener un campo 'data'."}), 400
+    if not content:
+        return jsonify({"error": "El cuerpo de la solicitud no ha sido encontrado."}), 400
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO kafka_messages (data) VALUES (%s) RETURNING id;",
-            [json.dumps(content['data'])]
+            #"INSERT INTO consumos (data) VALUES (%s) RETURNING id;",
+            #[json.dumps(content['data'])]
+            "INSERT INTO consumos (id_casa, consumo_kwh, temperatura, irradiacion_solar, placas, produccion_solar_kwh) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;",
+            #(content['ID_CASA'], content['CONSUMO_KWH'], content['TEMPERATURA'], content['IRRADIACION_SOLAR'], content['PLACAS'], content['PRODUCCION_SOLAR_KWH'])
+            (content['id_casa'], content['consumo_kwh'], content['temperatura'], content['irradiacion_solar'], content['placas'], content['produccion_solar_kwh'])
         )
         conn.commit()
         new_id = cursor.fetchone()[0]

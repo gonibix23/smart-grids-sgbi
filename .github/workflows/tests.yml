@@ -1,0 +1,98 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    pull_request:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: Build and Push Kafka Producer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest ./kafka_producer
+          docker push ${{ secrets.DOCKER_USERNAME }}/kafka_producer:latest
+
+      - name: Build and Push Spark Consumer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest ./spark_consumer
+          docker push ${{ secrets.DOCKER_USERNAME }}/spark_consumer:latest
+
+      - name: Build and Push Exit API
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/api:latest ./api
+          docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
+
+      - name: Set up Kubernetes (Kind)
+        uses: helm/kind-action@v1.8.0
+
+      - name: Deploy pods
+        run: kubectl apply -f ./full_deployment.yaml
+
+      - name: Wait for Pods to Be Ready
+        run: |
+          echo "Waiting for Kafka, Spark, and TimescaleDB pods to be in 'Running' state..."
+          PODS=$(kubectl get pods --output=jsonpath='{.items[*].metadata.name}')
+          for POD in $PODS; do
+            echo "Waiting for pod $POD to be ready..."
+            kubectl wait --for=condition=ready pod/$POD --timeout=300s
+          done
+          kubectl get pods
+
+      - name: Install pandas
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pandas
+
+      - name: Port forward API service
+        run: |
+          kubectl port-forward svc/kafka-producer 30002:5001 &
+          kubectl port-forward svc/api 30001:5000 &
+          sleep 5
+          echo "Port forwarding started"
+
+      - name: Run data loader for 15 seconds
+        run: |
+          python3 ./homes/data-loader.py &
+          LOADER_PID=$!
+          sleep 15
+          kill $LOADER_PID || true
+
+      - name: Wait before checking data
+        run: sleep 20
+
+      - name: Verify 'timestamp' in /data response
+        run: |
+          RESPONSE=$(curl -s http://localhost:30001/data)
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"timestamp"'; then
+            echo "✅ 'timestamp' key found in response."
+          else
+            echo "❌ 'timestamp' key not found in response."
+            exit 1
+          fi
+
+      - name: Cleanup Resources
+        if: always()
+        run: |
+          kubectl delete -f ./full_deployment.yaml
+          if [ -n "$PF_PID" ]; then  # Check if PF_PID is not empty
+            kill $PF_PID
+          fi
+
