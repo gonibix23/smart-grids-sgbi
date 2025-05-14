@@ -4,6 +4,7 @@ import time
 import threading
 import requests
 import pandas as pd
+import os
 
 API_URL = "http://localhost:30002/ingest"
 
@@ -41,6 +42,9 @@ def message_loop(thread_id, df):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(threadName)s] %(levelname)s: %(message)s')
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "raw-data.csv")
 
     file_path = "raw-data.csv"
 
